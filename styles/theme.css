@@ -1,0 +1,249 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================================================
+   🎨 PALETA DE CORES BASE
+========================================================= */
+:root {
+  --rose: #421c2d;
+  --violet-1: #b993ff;
+  --violet-2: #9a7cff;
+  --sky-1: #a6c8ff;
+  --sky-2: #86b2ff;
+
+  /* Tema Claro */
+  --bg-light: #fdf6f9;
+  --bg-gradient: linear-gradient(180deg, #ee89dd, #f8f8f8);
+  --text-color: #421c2d;
+}
+
+/* =========================================================
+  GERAIS
+========================================================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+button {
+  transition: all 0.25s ease-in-out;
+}
+
+/* =========================================================
+  FUNDO
+========================================================= */
+.bg-romantic-gradient {
+  background: var(--bg-gradient);
+  color: var(--text-color);
+  transition: background 0.4s ease, color 0.4s ease;
+}
+
+/* =========================================================
+  DARKMODE
+========================================================= */
+.dark {
+  --bg-gradient: radial-gradient(
+      1200px 600px at 10% 0%,
+      rgba(236, 100, 248, 0.18) 0%,
+      rgba(161, 7, 7, 0) 60%
+    ),
+    radial-gradient(
+      800px 500px at 90% 20%,
+      rgba(236, 100, 248, 0.18) 0%,
+      rgba(161, 7, 7, 0) 60%
+    ),
+    radial-gradient(
+      2000px 800px at 40% 70%,
+      rgba(236, 100, 248, 0.18) 0%,
+      rgba(161, 7, 7, 0) 60%
+    ),
+    linear-gradient(180deg, var(--rose));
+  --text-color: #f9e7ef;
+  background-color: var(--rose);
+  color: var(--text-color);
+}
+
+/* =========================================================
+  BOTÕES
+========================================================= */
+.btn-lg {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px 32px;
+  border-radius: 7px;
+  cursor: pointer;
+  margin: 8px 0;
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: #fff;
+  transition: all 0.2s ease;
+  border: none;
+  outline: none;
+}
+
+.btn-primary-gradient {
+  background: linear-gradient(135deg, var(--violet-2), var(--violet-1));
+}
+
+.btn-primary-gradient:hover {
+  filter: brightness(1.08);
+}
+
+.btn-secondary-gradient {
+  background: linear-gradient(135deg, var(--sky-2), var(--sky-1));
+}
+
+.btn-secondary-gradient:hover {
+  filter: brightness(1.08);
+}
+
+.text-shadow {
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* =========================================================
+  CARROSSEL
+========================================================= */
+.carrousel-card {
+  background: #b95686;
+  margin: 15px;
+  border-radius: 12px !important;
+  padding: 15px 10px !important;
+  box-shadow: 0 0 0 rgba(249, 148, 196, 0);
+  width: 350px;
+  transition: all 0.3s ease;
+}
+
+.carrousel-card:hover {
+  box-shadow: 0 0 25px rgba(249, 148, 196, 0.4);
+}
+
+.carrousel-card-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0c0a0a;
+  margin: 10px 0;
+}
+
+.carrousel-card-description {
+  font-size: 1.2rem;
+  color: #0c0a0a;
+  line-height: 1.4;
+}
+
+/* =========================================================
+  HEADER
+========================================================= */
+header {
+  background-color: black;
+  color: white;
+  padding: 10px 0;
+  width: 100%;
+  font-size: 16px;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+.btn-return {
+  background: #b95686;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 7px;
+  margin: 10px 0 0 10px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-return:hover {
+  background: #d16f9a;
+}
+
+.header-title {
+  color: white;
+}
+
+/* =========================================================
+  BOTÃO DE TEMA
+========================================================= */
+.btn-theme-toggle {
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  outline: none;
+  border: none;
+  background: white;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.btn-theme-toggle:hover {
+  filter: brightness(0.9);
+}
+
+/* =========================================================
+  DARKMODE
+========================================================= */
+.dark {
+  --text-color: #f9e7ef;
+  background-color: var(--rose);
+  color: var(--text-color);
+}
+
+/* Quando o tema for CLARO (light) */
+html:not(.dark) header,
+html:not(.dark) footer {
+  background-color: #5a2b3f; /* Cinza escuro rosado */
+  color: #fff;
+}
+
+/* =========================================================
+  SELECT DE IDIOMA
+========================================================= */
+.div-select {
+  margin: 0 10px;
+}
+
+.select-lang {
+  background-color: white !important; /* Sempre branco */
+  color: #333;
+  border-radius: 7px;
+  cursor: pointer;
+  height: 30px;
+  width: 70px;
+  border: none;
+  outline: none;
+  text-align: center;
+  font-weight: 600;
+  transition: transform 0.2s ease;
+}
+
+.select-lang:hover {
+  transform: scale(1.05);
+}
+
+/* =========================================================
+  FOOTER
+========================================================= */
+footer {
+  background-color: black;
+  color: white;
+  padding: 10px 0;
+  width: 100%;
+  font-size: 16px;
+  transition: background-color 0.4s ease;
+}
+
+.user-link {
+  color: #b95686;
+  text-decoration: none;
+}
