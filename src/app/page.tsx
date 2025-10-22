@@ -3,39 +3,17 @@
 import "react-multi-carousel/lib/styles.css";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useState } from "react";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import dynamic from "next/dynamic";
+import { games } from "@/mocks/games";
+import { useI18n } from "../../lib/i18n";
 
 const Carousel = dynamic(() => import("react-multi-carousel"), { ssr: false });
 
-const games = [
-  {
-    id: 1,
-    title: "TABULEIRO ROMÂNTICO",
-    imageUrl: "/images/tabuleiro.png",
-    description:
-      "Explore desafios e momentos românticos em um jogo de tabuleiro feito para casais.",
-  },
-  {
-    id: 2,
-    title: "CARTAS",
-    imageUrl: "/images/cartas.png",
-    description:
-      "Responda perguntas, encare desafios e descubra mais sobre seu parceiro.",
-  },
-  {
-    id: 3,
-    title: "EM BREVE...",
-    imageUrl: "/images/building.png",
-    description:
-      "Um novo jogo vem aí... repleto de missões amorosas e diversão para dois!",
-  },
-];
-
 export default function Home() {
   const router = useRouter();
+  const { t } = useI18n();
 
   return (
     <div className="min-h-screen flex flex-col bg-romantic-gradient">
@@ -47,19 +25,19 @@ export default function Home() {
             partialVisible
             responsive={{
               desktop: {
-                breakpoint: { max: 3000, min: 1024 },
+                breakpoint: { max: 3000, min: 1500 },
                 items: 2,
                 partialVisibilityGutter: 80,
               },
               tablet: {
-                breakpoint: { max: 1024, min: 640 },
+                breakpoint: { max: 1500, min: 1200 },
                 items: 1,
-                partialVisibilityGutter: 50,
+                partialVisibilityGutter: 280,
               },
               mobile: {
-                breakpoint: { max: 640, min: 0 },
+                breakpoint: { max: 1200, min: 900 },
                 items: 1,
-                partialVisibilityGutter: 35,
+                partialVisibilityGutter: 200,
               },
             }}
             infinite
@@ -101,16 +79,16 @@ export default function Home() {
         <section className="w-2/5 flex flex-col items-center justify-center gap-12 pl-12">
           <button
             onClick={() => router.push("/CreateRoom")}
-            className="btn-lg btn-primary-gradient soft-shadow btn-page"
+            className="btn-lg btn-primary-gradient soft-shadow btn-page [width:250px]"
           >
-            ➕ Criar Sala
+            ➕ {t("btnActions.createRoom")}
           </button>
 
           <button
             onClick={() => router.push("/JoinRoom")}
-            className="btn-lg btn-secondary-gradient soft-shadow btn-page"
+            className="btn-lg btn-secondary-gradient soft-shadow btn-page  [width:250px]"
           >
-            🔑 Entrar em Sala
+            🔑 {t("btnActions.joinRoom")}
           </button>
         </section>
       </main>

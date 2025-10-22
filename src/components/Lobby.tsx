@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useI18n } from "../../lib/i18n";
 
 export default function Lobby() {
-  const { t } = useI18n("pt");
+  const { t } = useI18n();
   const [room, setRoom] = useState("");
   const [name, setName] = useState<string>(() =>
     typeof window !== "undefined"

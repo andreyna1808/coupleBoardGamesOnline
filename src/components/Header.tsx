@@ -9,7 +9,7 @@ import { FaSun, FaMoon } from "react-icons/fa";
 export default function Header() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
-  const { lang, setLang } = useI18n("pt");
+  const { t, lang, setLang } = useI18n();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -18,10 +18,10 @@ export default function Header() {
   return (
     <header className="flex items-center justify-between w-full">
       <button onClick={() => router.back()} className="btn-return">
-        ← Voltar
+        ← {t("header.return")}
       </button>
 
-      <h1 className="header-title">Board Couple Game</h1>
+      <h1 className="header-title">{t("title")}</h1>
 
       <div className="flex items-center">
         <button
