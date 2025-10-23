@@ -4,6 +4,12 @@ export const pt = {
     return: "Home",
   },
 
+  room: {
+    title: "Sala {{code}}",
+    players: "Jogadores conectados",
+    selectGame: "Escolha o jogo para começar",
+  },
+
   btnActions: {
     createRoom: "Criar Sala",
     joinRoom: "Entrar na Sala",

@@ -7,7 +7,7 @@ import { useI18n } from "../../lib/i18n";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! // ✅ apenas anon key no client!
 );
 
 export default function RoomForm({ mode }: { mode: "create" | "join" }) {
@@ -28,21 +28,25 @@ export default function RoomForm({ mode }: { mode: "create" | "join" }) {
       let code = roomCode;
 
       if (mode === "create") {
-        code = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const res = await fetch("/api/create-room", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name }),
+        });
 
-        const { error: roomError } = await supabase
-          .from("rooms")
-          .insert([{ code, game: "board", status: "waiting" }]);
-        if (roomError) throw roomError;
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Erro ao criar sala.");
+        code = data.code;
+      } else {
+        const { error: playerError } = await supabase
+          .from("players")
+          .insert([{ room_code: code, name }]);
+        if (playerError) throw playerError;
       }
-
-      const { error: playerError } = await supabase
-        .from("players")
-        .insert([{ room_code: code, name }]);
-      if (playerError) throw playerError;
 
       router.push(`/room/${code}`);
     } catch (err: any) {
+      console.error(err);
       setError(err.message || t("forms.errorGeneric"));
     } finally {
       setLoading(false);

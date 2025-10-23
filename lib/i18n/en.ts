@@ -4,6 +4,12 @@ export const en = {
     return: "Home",
   },
 
+  room: {
+    title: "Room {{code}}",
+    players: "Connected Players",
+    selectGame: "Choose a game to get started",
+  },
+
   btnActions: {
     createRoom: "Create Room",
     joinRoom: "Join Room",

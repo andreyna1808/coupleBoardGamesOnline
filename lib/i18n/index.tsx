@@ -19,7 +19,7 @@ const packs: Record<Lang, any> = { es, pt, en };
 type I18nCtx = {
   lang: Lang;
   setLang: (l: Lang) => void;
-  t: (key: string) => string;
+  t: (key: string, vars?: Record<string, any>) => string;
   getPack: <T = any>() => T;
 };
 
@@ -50,7 +50,15 @@ export function I18nProvider({
   }, [lang]);
 
   const t = useMemo(
-    () => (key: string) => (resolveKey(packs[lang], key) ?? key) as string,
+    () => (key: string, vars?: Record<string, any>) => {
+      let text = resolveKey(packs[lang], key) ?? key;
+      if (vars) {
+        for (const [k, v] of Object.entries(vars)) {
+          text = text.replace(new RegExp(`{{${k}}}`, "g"), String(v));
+        }
+      }
+      return text;
+    },
     [lang]
   );
 
