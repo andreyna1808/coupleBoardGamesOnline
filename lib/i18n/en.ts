@@ -8,6 +8,11 @@ export const en = {
     code: "Room code: {{code}}",
     players: "Connected Players",
     selectGame: "Choose a game to get started",
+    timePrefix: "⏳ Time left:",
+    expired: "Expired",
+    leave: "Leave room",
+    you: "You",
+    selectedGameConsole: "Selected {{game}}",
   },
 
   btnActions: {
@@ -39,6 +44,24 @@ export const en = {
     restart: "Restart",
     ads: "Ad space",
     gameSelectLead: "Choose a game to get started.",
+  },
+
+  games: {
+    board: {
+      title: "ROMANTIC BOARD",
+      description:
+        "Explore romantic challenges and moments in a board game made for couples.",
+    },
+    cards: {
+      title: "CARDS",
+      description:
+        "Answer questions, take on challenges and discover more about your partner.",
+    },
+    coming: {
+      title: "COMING SOON...",
+      description:
+        "A new game is on the way... full of love missions and fun for two!",
+    },
   },
 
   forms: {

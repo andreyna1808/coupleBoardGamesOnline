@@ -1,23 +1,20 @@
 export const games = [
   {
     id: "boardgame",
-    title: "TABULEIRO ROMÂNTICO",
+    titleKey: "games.board.title",
+    descKey: "games.board.description",
     imageUrl: "/images/tabuleiro.png",
-    description:
-      "Explore desafios e momentos românticos em um jogo de tabuleiro feito para casais.",
   },
   {
     id: "cardgame",
-    title: "CARTAS",
+    titleKey: "games.cards.title",
+    descKey: "games.cards.description",
     imageUrl: "/images/cartas.png",
-    description:
-      "Responda perguntas, encare desafios e descubra mais sobre seu parceiro(a).",
   },
   {
     id: null,
-    title: "EM BREVE...",
+    titleKey: "games.coming.title",
+    descKey: "games.coming.description",
     imageUrl: "/images/building.png",
-    description:
-      "Um novo jogo vem aí... repleto de missões amorosas e diversão para dois!",
   },
 ];

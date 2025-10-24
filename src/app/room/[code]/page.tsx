@@ -228,11 +228,11 @@ export default function RoomPage() {
           <h3>{t("room.code", { code: String(code) })}</h3>
           <div className="room-timer">
             <p className="text-time">
-              ⏳ Tempo restante:{" "}
-              {timeLeft > 0 ? formatTime(timeLeft) : "Expirada"}
+              {t("room.timePrefix")}{" "}
+              {timeLeft > 0 ? formatTime(timeLeft) : t("room.expired")}
             </p>
             <button onClick={handleLeaveRoom} className="btn-return m-0">
-              Sair da sala
+              {t("room.leave")}
             </button>
           </div>
         </div>
@@ -251,7 +251,7 @@ export default function RoomPage() {
               />
               <h4>
                 {" "}
-                {p.name} {p.id === playerId && " (você)"}
+                {p.name} {p.id === playerId && `(${t("room.you")})`}
               </h4>
             </div>
           ))}
@@ -267,13 +267,13 @@ export default function RoomPage() {
                   .map((game) => (
                     <div
                       key={game.id}
-                      className="carrousel-card select-game-card"
+                      className="carrousel-card"
                       onClick={() => console.log(`Selecionou ${game.id}`)}
                     >
                       <div className="mx-auto mb-4 flex justify-center">
                         <Image
                           src={game.imageUrl}
-                          alt={game.title}
+                          alt={t(game.titleKey)}
                           width={200}
                           height={200}
                           className="object-contain drop-shadow-md rounded-xl"
@@ -282,11 +282,11 @@ export default function RoomPage() {
                       </div>
 
                       <h3 className="carrousel-card-title text-center mb-2">
-                        {game.title}
+                        {t(game.titleKey)}
                       </h3>
 
                       <p className="carrousel-card-description text-center">
-                        {game.description}
+                        {t(game.descKey)}
                       </p>
                     </div>
                   ))}

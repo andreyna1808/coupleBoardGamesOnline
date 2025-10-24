@@ -56,7 +56,7 @@ export default function Home() {
                 <div className="mx-auto mb-4 flex justify-center">
                   <Image
                     src={game.imageUrl}
-                    alt={game.title}
+                    alt={t(game.titleKey)}
                     width={200}
                     height={200}
                     className="object-contain drop-shadow-md rounded-xl"
@@ -65,11 +65,11 @@ export default function Home() {
                 </div>
 
                 <h3 className="carrousel-card-title text-center mb-2">
-                  {game.title}
+                  {t(game.titleKey)}
                 </h3>
 
                 <p className="carrousel-card-description text-center">
-                  {game.description}
+                  {t(game.descKey)}
                 </p>
               </div>
             ))}
@@ -79,14 +79,14 @@ export default function Home() {
         <section className="w-2/5 flex flex-col items-center justify-center gap-12 pl-12">
           <button
             onClick={() => router.push("/CreateRoom")}
-            className="btn-lg btn-primary-gradient soft-shadow btn-page [width:250px]"
+            className="btn-lg btn-primary-gradient soft-shadow btn-page w-[250px]"
           >
             ➕ {t("btnActions.createRoom")}
           </button>
 
           <button
             onClick={() => router.push("/JoinRoom")}
-            className="btn-lg btn-secondary-gradient soft-shadow btn-page  [width:250px]"
+            className="btn-lg btn-secondary-gradient soft-shadow btn-page w-[250px]"
           >
             🔑 {t("btnActions.joinRoom")}
           </button>

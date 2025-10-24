@@ -8,6 +8,11 @@ export const es = {
     code: "Código de la sala: {{code}}",
     players: "Jugadores conectados",
     selectGame: "Elige un juego para comenzar",
+    timePrefix: "⏳ Tiempo restante:",
+    expired: "Expirada",
+    leave: "Salir de la sala",
+    you: "Tú",
+    selectedGameConsole: "Seleccionó {{game}}",
   },
 
   btnActions: {
@@ -39,6 +44,24 @@ export const es = {
     restart: "Reiniciar",
     ads: "Espacio para anuncios",
     gameSelectLead: "Elige un juego para comenzar.",
+  },
+
+  games: {
+    board: {
+      title: "TABLERO ROMÁNTICO",
+      description:
+        "Explora desafíos y momentos románticos en un juego de mesa hecho para parejas.",
+    },
+    cards: {
+      title: "CARTAS",
+      description:
+        "Responde preguntas, enfrenta desafíos y descubre más sobre tu pareja.",
+    },
+    coming: {
+      title: "PRÓXIMAMENTE...",
+      description:
+        "¡Un nuevo juego está en camino... lleno de misiones amorosas y diversión para dos!",
+    },
   },
 
   forms: {
