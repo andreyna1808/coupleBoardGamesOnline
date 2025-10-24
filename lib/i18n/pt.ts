@@ -5,7 +5,7 @@ export const pt = {
   },
 
   room: {
-    title: "Sala {{code}}",
+    code: "Código da sala: {{code}}",
     players: "Jogadores conectados",
     selectGame: "Escolha o jogo para começar",
   },

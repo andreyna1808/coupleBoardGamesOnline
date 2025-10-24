@@ -5,7 +5,7 @@ export const es = {
   },
 
   room: {
-    title: "Sala {{code}}",
+    code: "Código de la sala: {{code}}",
     players: "Jugadores conectados",
     selectGame: "Elige un juego para comenzar",
   },

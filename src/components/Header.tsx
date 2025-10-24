@@ -17,7 +17,7 @@ export default function Header() {
 
   return (
     <header className="flex items-center justify-between w-full">
-      <button onClick={() => router.back()} className="btn-return">
+      <button onClick={() => router.push("/")} className="btn-return">
         ← {t("header.return")}
       </button>
 

@@ -1,0 +1,74 @@
+h1,
+h2,
+h3 {
+  margin: 10px 0;
+}
+
+.room-info {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0px 10px;
+  margin: 10px 0;
+}
+
+.room-timer {
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  height: 35px;
+}
+
+.text-time {
+  margin: 0 10px;
+}
+
+.container-name-user {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.img-player {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin-right: 10px;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+  overflow: hidden;
+  background-color: rgba(255, 255, 255, 0.03);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  image-rendering: auto;
+}
+
+.img-1 {
+  transform: scaleX(-1);
+  transform-origin: center;
+}
+
+.box-center {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+.container-games {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 80vw;
+  height: 50vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.select-game-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}

@@ -1,82 +1,200 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
 import Image from "next/image";
 import { games } from "@/mocks/games";
 import { useI18n } from "../../../../lib/i18n";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { supabaseCSRConnection } from "@/app/supabaseCSRConnection";
+import "./room.css";
 
 export default function RoomPage() {
   const { code } = useParams();
   const router = useRouter();
   const { t } = useI18n();
+
   const [players, setPlayers] = useState<any[]>([]);
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [playerId, setPlayerId] = useState<string | null>(null);
+  const [playerName, setPlayerName] = useState<string>("");
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [roomCreatedAt, setRoomCreatedAt] = useState<Date | null>(null);
+  const [isValidRoom, setIsValidRoom] = useState<boolean | null>(null);
 
-  // 🔄 carrega e escuta jogadores + game_state em um único channel
+  const channelRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const id = localStorage.getItem("playerId");
+    const name = localStorage.getItem("playerName") || "";
+    setPlayerId(id);
+    setPlayerName(name);
+  }, []);
+
   useEffect(() => {
     if (!code) return;
 
-    const loadPlayers = async () => {
-      const { data } = await supabase
-        .from("players")
+    const validateRoom = async () => {
+      const { data: room, error } = await supabaseCSRConnection
+        .from("rooms")
         .select("*")
+        .eq("code", code)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Erro ao buscar sala:", error);
+        alert("Erro ao carregar a sala. Tente novamente.");
+        router.push("/");
+        return;
+      }
+
+      if (!room) {
+        alert("Sala não encontrada ou já expirada.");
+        router.push("/");
+        return;
+      }
+
+      setIsValidRoom(true);
+      setRoomCreatedAt(new Date(room.created_at));
+      console.log("✅ Sala validada:", room);
+    };
+
+    validateRoom();
+  }, [code, router]);
+
+  useEffect(() => {
+    if (isValidRoom !== true) return;
+
+    const loadPlayers = async () => {
+      const { data: playersData } = await supabaseCSRConnection
+        .from("players")
+        .select("id, name, joined_at")
         .eq("room_code", code);
-      setPlayers(data || []);
+
+      setPlayers(playersData || []);
     };
 
     loadPlayers();
+  }, [code, isValidRoom]);
 
-    const channel = supabase.channel(`room-${code}`);
+  useEffect(() => {
+    if (!roomCreatedAt) return;
+
+    const updateTimer = () => {
+      const now = new Date();
+      const elapsed = Math.floor(
+        (now.getTime() - roomCreatedAt.getTime()) / 1000
+      );
+      const remaining = Math.max(0, 7200 - elapsed);
+      setTimeLeft(remaining);
+
+      if (remaining <= 0) {
+        fetch("/api/room-broadcast", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            room_code: code,
+            event: "room-deleted",
+            data: { message: "expired" },
+          }),
+        });
+      }
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [roomCreatedAt, code]);
+
+  useEffect(() => {
+    if (!code || !playerId || channelRef.current || isValidRoom !== true)
+      return;
+
+    const channel = supabaseCSRConnection.channel(`room-${code}`, {
+      config: {
+        broadcast: { self: false },
+        presence: { key: playerId },
+      },
+    });
 
     channel
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "players",
-          filter: `room_code=eq.${code}`,
-        },
-        loadPlayers
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "game_state",
-          filter: `room_code=eq.${code}`,
-        },
-        (payload: any) => {
-          const state = payload.new?.state;
-          console.log("Game state updated:", state);
-          if (state?.ready && state.selectedGame)
-            startCountdown(state.selectedGame);
-        }
-      )
-      .subscribe();
+      .on("broadcast", { event: "player-joined" }, async ({ payload }) => {
+        const { data } = await supabaseCSRConnection
+          .from("players")
+          .select("id, name")
+          .eq("id", payload.id)
+          .maybeSingle();
 
+        if (!data) return;
+        setPlayers((prev) =>
+          prev.some((p) => p.id === data.id) ? prev : [...prev, data]
+        );
+      })
+      .on("broadcast", { event: "player-left" }, ({ payload }) => {
+        setPlayers((prev) => prev.filter((p) => p.id !== payload.id));
+      })
+      .on("broadcast", { event: "room-deleted" }, () => {
+        alert("A sala expirou ou foi encerrada.");
+        localStorage.removeItem("playerId");
+        localStorage.removeItem("playerName");
+        router.push("/");
+      })
+      .on("broadcast", { event: "game-selected" }, ({ payload }) => {
+        setSelectedGame(payload.selectedGame);
+      })
+      .on("broadcast", { event: "game-start" }, ({ payload }) => {
+        startCountdown(payload.gameId);
+      });
+
+    channel.subscribe((status) => {
+      console.log("📡 Broadcast status:", status);
+    });
+
+    channelRef.current = channel;
     return () => {
-      // evitar async no retorno
-      void supabase.removeChannel(channel);
+      supabaseCSRConnection.removeChannel(channel);
+      channelRef.current = null;
     };
-  }, [code]);
+  }, [code, playerId, router, isValidRoom]);
 
-  // 🚀 sincroniza seleção
   useEffect(() => {
-    if (!code || !selectedGame) return;
-    void supabase
-      .from("game_state")
-      .upsert({ room_code: code, state: { selectedGame } });
-  }, [selectedGame, code]);
+    if (!code || !playerId || isValidRoom !== true) return;
+    fetch("/api/room-broadcast", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        room_code: code,
+        event: "player-joined",
+        data: { id: playerId },
+      }),
+    }).catch(console.error);
+  }, [code, playerId, isValidRoom]);
+
+  const handleLeaveRoom = async () => {
+    if (!playerId) return;
+
+    try {
+      await supabaseCSRConnection.from("players").delete().eq("id", playerId);
+      await fetch("/api/room-broadcast", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          room_code: code,
+          event: "player-left",
+          data: { id: playerId },
+        }),
+      });
+
+      localStorage.removeItem("playerId");
+      localStorage.removeItem("playerName");
+      router.push("/");
+    } catch (err) {
+      console.error("Erro ao sair:", err);
+    }
+  };
 
   const startCountdown = (gameId: string) => {
     setCountdown(3);
@@ -90,69 +208,101 @@ export default function RoomPage() {
     }, 1000);
   };
 
-  const confirmGame = async (gameId: string) => {
-    setSelectedGame(gameId);
-    const { data } = await supabase
-      .from("game_state")
-      .select("*")
-      .eq("room_code", code)
-      .single();
-
-    if (data?.state?.selectedGame === gameId) {
-      await supabase
-        .from("game_state")
-        .update({ state: { ready: true, selectedGame: gameId } })
-        .eq("room_code", code);
-    }
+  const formatTime = (s: number) => {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return `${h.toString().padStart(2, "0")}:${m
+      .toString()
+      .padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
   };
 
+  if (isValidRoom === false) return null;
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-romantic-gradient text-white px-6 py-10">
-      <h1 className="text-3xl font-bold mb-2">
-        {t("room.title", { code: String(code) })}
-      </h1>
+    <div className="min-h-screen flex flex-col bg-romantic-gradient">
+      <Header />
 
-      <h2 className="text-xl mb-4">{t("room.players")}</h2>
-
-      <ul className="bg-white/10 p-4 rounded-lg shadow-lg min-w-[300px] text-center mb-10">
-        {players.map((p) => (
-          <li key={p.id} className="py-1 text-lg">
-            {p.name}
-          </li>
-        ))}
-      </ul>
-
-      {!selectedGame && (
-        <>
-          <h3 className="text-2xl mb-4">{t("room.selectGame")}</h3>
-          <div className="flex gap-6 flex-wrap justify-center">
-            {games
-              .filter((g) => g.id)
-              .map((g) => (
-                <button
-                  key={g.id}
-                  onClick={() => confirmGame(g.id!)}
-                  className="flex flex-col items-center bg-white/20 p-4 rounded-xl hover:bg-white/30 transition"
-                >
-                  <Image
-                    src={g.imageUrl}
-                    alt={g.title}
-                    width={100}
-                    height={100}
-                    className="rounded-xl"
-                  />
-                  <p className="mt-2 font-semibold">{g.title}</p>
-                </button>
-              ))}
+      <main className="flex flex-1 flex-col px-10 py-10 w-full">
+        <div className="room-info">
+          <h3>{t("room.code", { code: String(code) })}</h3>
+          <div className="room-timer">
+            <p className="text-time">
+              ⏳ Tempo restante:{" "}
+              {timeLeft > 0 ? formatTime(timeLeft) : "Expirada"}
+            </p>
+            <button onClick={handleLeaveRoom} className="btn-return m-0">
+              Sair da sala
+            </button>
           </div>
-        </>
-      )}
-
-      {countdown !== null && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center text-8xl font-bold">
-          {countdown}
         </div>
-      )}
+
+        <div className="container-name-user">
+          {players.map((p, idx) => (
+            <div className="container-name-user" key={p.id}>
+              <Image
+                src={`/images/img-${idx}.png`}
+                alt={p.name}
+                width={80}
+                height={80}
+                className={`img-player img-${idx}`}
+                priority
+                quality={90}
+              />
+              <h4>
+                {" "}
+                {p.name} {p.id === playerId && " (você)"}
+              </h4>
+            </div>
+          ))}
+        </div>
+
+        <div className="box-center">
+          {!selectedGame && (
+            <div className="mt-8 text-center">
+              <h3>{t("room.selectGame")}</h3>
+              <div className="container-games">
+                {games
+                  .filter((game) => game.id)
+                  .map((game) => (
+                    <div
+                      key={game.id}
+                      className="carrousel-card select-game-card"
+                      onClick={() => console.log(`Selecionou ${game.id}`)}
+                    >
+                      <div className="mx-auto mb-4 flex justify-center">
+                        <Image
+                          src={game.imageUrl}
+                          alt={game.title}
+                          width={200}
+                          height={200}
+                          className="object-contain drop-shadow-md rounded-xl"
+                          priority
+                        />
+                      </div>
+
+                      <h3 className="carrousel-card-title text-center mb-2">
+                        {game.title}
+                      </h3>
+
+                      <p className="carrousel-card-description text-center">
+                        {game.description}
+                      </p>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {countdown !== null && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center text-8xl font-bold">
+            {countdown}
+          </div>
+        )}
+      </main>
+
+      <Footer />
     </div>
   );
 }

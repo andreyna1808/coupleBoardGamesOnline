@@ -2,13 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
 import { useI18n } from "../../lib/i18n";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! // ✅ apenas anon key no client!
-);
 
 export default function RoomForm({ mode }: { mode: "create" | "join" }) {
   const router = useRouter();
@@ -26,6 +20,7 @@ export default function RoomForm({ mode }: { mode: "create" | "join" }) {
 
     try {
       let code = roomCode;
+      let playerId: string | undefined;
 
       if (mode === "create") {
         const res = await fetch("/api/create-room", {
@@ -37,12 +32,20 @@ export default function RoomForm({ mode }: { mode: "create" | "join" }) {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Erro ao criar sala.");
         code = data.code;
+        playerId = data.playerId;
       } else {
-        const { error: playerError } = await supabase
-          .from("players")
-          .insert([{ room_code: code, name }]);
-        if (playerError) throw playerError;
+        const res = await fetch("/api/join-room", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code, name }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Erro ao entrar na sala.");
+        playerId = data.playerId;
       }
+
+      if (playerId) localStorage.setItem("playerId", playerId);
 
       router.push(`/room/${code}`);
     } catch (err: any) {
