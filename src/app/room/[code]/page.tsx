@@ -19,19 +19,17 @@ export default function RoomPage() {
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [playerId, setPlayerId] = useState<string | null>(null);
-  const [playerName, setPlayerName] = useState<string>("");
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [roomCreatedAt, setRoomCreatedAt] = useState<Date | null>(null);
   const [isValidRoom, setIsValidRoom] = useState<boolean | null>(null);
+  const [isCreator, setIsCreator] = useState<boolean>(false);
 
   const channelRef = useRef<any>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const id = localStorage.getItem("playerId");
-    const name = localStorage.getItem("playerName") || "";
     setPlayerId(id);
-    setPlayerName(name);
   }, []);
 
   useEffect(() => {
@@ -57,13 +55,74 @@ export default function RoomPage() {
         return;
       }
 
+      console.log("room", room);
       setIsValidRoom(true);
       setRoomCreatedAt(new Date(room.created_at));
+      setSelectedGame(room.selected_game || null);
+
+      if (room.selected_game) {
+        try {
+          if (room.selected_game === "boardgame") {
+            const { data: progress, error: boardError } =
+              await supabaseCSRConnection
+                .from("board_game_progress")
+                .select("player_id")
+                .eq("room_code", code)
+                .limit(1)
+                .maybeSingle();
+
+            if (boardError) throw boardError;
+
+            if (progress) {
+              console.log("🔁 Redirecionando para boardgame existente");
+              router.push(`/room/${code}/boardgame/${progress.player_id}`);
+              return;
+            }
+          } else if (room.selected_game === "cardgame") {
+            const { data: progress, error: cardError } =
+              await supabaseCSRConnection
+                .from("card_game_progress")
+                .select("player_id")
+                .eq("room_code", code)
+                .limit(1)
+                .maybeSingle();
+
+            if (cardError) throw cardError;
+
+            if (progress) {
+              console.log("🔁 Redirecionando para cardgame existente");
+              router.push(`/room/${code}/cardgame/${progress.player_id}`);
+              return;
+            }
+          }
+        } catch (err) {
+          console.error("Erro ao buscar jogo ativo:", err);
+        }
+      }
+
       console.log("✅ Sala validada:", room);
     };
 
     validateRoom();
   }, [code, router]);
+
+  useEffect(() => {
+    if (!playerId || !code) return;
+
+    const checkCreator = async () => {
+      const { data } = await supabaseCSRConnection
+        .from("players")
+        .select("is_creator")
+        .eq("id", playerId)
+        .maybeSingle();
+
+      console.log("Teste: ", data);
+
+      if (data?.is_creator) setIsCreator(true);
+    };
+
+    checkCreator();
+  }, [playerId, code]);
 
   useEffect(() => {
     if (isValidRoom !== true) return;
@@ -92,7 +151,7 @@ export default function RoomPage() {
       setTimeLeft(remaining);
 
       if (remaining <= 0) {
-        fetch("/api/room-broadcast", {
+        fetch("/api/room/broadcast", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -143,10 +202,12 @@ export default function RoomPage() {
         router.push("/");
       })
       .on("broadcast", { event: "game-selected" }, ({ payload }) => {
-        setSelectedGame(payload.selectedGame);
-      })
-      .on("broadcast", { event: "game-start" }, ({ payload }) => {
-        startCountdown(payload.gameId);
+        console.log("🎮 Jogo selecionado:", payload);
+        setSelectedGame(payload.game);
+
+        if (payload.game === "boardgame" && payload.boardId) {
+          router.push(`/room/${code}/boardgame/${payload.boardId}`);
+        }
       });
 
     channel.subscribe((status) => {
@@ -158,11 +219,11 @@ export default function RoomPage() {
       supabaseCSRConnection.removeChannel(channel);
       channelRef.current = null;
     };
-  }, [code, playerId, router, isValidRoom]);
+  }, [code, playerId, router, isValidRoom, selectedGame]);
 
   useEffect(() => {
     if (!code || !playerId || isValidRoom !== true) return;
-    fetch("/api/room-broadcast", {
+    fetch("/api/room/broadcast", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -178,7 +239,7 @@ export default function RoomPage() {
 
     try {
       await supabaseCSRConnection.from("players").delete().eq("id", playerId);
-      await fetch("/api/room-broadcast", {
+      await fetch("/api/room/broadcast", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -193,6 +254,34 @@ export default function RoomPage() {
       router.push("/");
     } catch (err) {
       console.error("Erro ao sair:", err);
+    }
+  };
+
+  const handleSelectGame = async (gameId: string) => {
+    if (!isCreator || !playerId) {
+      alert("Somente o criador da sala pode escolher o jogo!");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/room/select-game", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, game: gameId, playerId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Erro ao selecionar o jogo");
+        return;
+      }
+
+      if (data.boardId && gameId === "boardgame") {
+        router.push(`/room/${code}/boardgame/${data.boardId}`);
+      }
+    } catch (err) {
+      console.error("Erro ao selecionar jogo:", err);
     }
   };
 
@@ -250,7 +339,6 @@ export default function RoomPage() {
                 quality={90}
               />
               <h4>
-                {" "}
                 {p.name} {p.id === playerId && `(${t("room.you")})`}
               </h4>
             </div>
@@ -260,37 +348,43 @@ export default function RoomPage() {
         <div className="box-center">
           {!selectedGame && (
             <div className="mt-8 text-center">
-              <h3>{t("room.selectGame")}</h3>
-              <div className="container-games">
-                {games
-                  .filter((game) => game.id)
-                  .map((game) => (
-                    <div
-                      key={game.id}
-                      className="carrousel-card"
-                      onClick={() => console.log(`Selecionou ${game.id}`)}
-                    >
-                      <div className="mx-auto mb-4 flex justify-center">
-                        <Image
-                          src={game.imageUrl}
-                          alt={t(game.titleKey)}
-                          width={200}
-                          height={200}
-                          className="object-contain drop-shadow-md rounded-xl"
-                          priority
-                        />
-                      </div>
-
-                      <h3 className="carrousel-card-title text-center mb-2">
-                        {t(game.titleKey)}
-                      </h3>
-
-                      <p className="carrousel-card-description text-center">
-                        {t(game.descKey)}
-                      </p>
-                    </div>
-                  ))}
-              </div>
+              {isCreator ? (
+                <>
+                  <h3>{t("room.selectGame")}</h3>
+                  <div className="container-games">
+                    {games
+                      ?.filter((game) => game.id)
+                      .map((game) => (
+                        <div
+                          key={game.id}
+                          className="carrousel-card select-game-card"
+                          onClick={() => handleSelectGame(game.id!)}
+                        >
+                          <div className="mx-auto mb-4 flex justify-center">
+                            <Image
+                              src={game.imageUrl}
+                              alt={t(game.titleKey)}
+                              width={200}
+                              height={200}
+                              className="object-contain drop-shadow-md rounded-xl"
+                              priority
+                            />
+                          </div>
+                          <h3 className="carrousel-card-title text-center mb-2">
+                            {t(game.titleKey)}
+                          </h3>
+                          <p className="carrousel-card-description text-center">
+                            {t(game.descKey)}
+                          </p>
+                        </div>
+                      ))}
+                  </div>
+                </>
+              ) : (
+                <p className="mt-6 text-lg italic opacity-80">
+                  {t("room.waitCreator")}
+                </p>
+              )}
             </div>
           )}
         </div>

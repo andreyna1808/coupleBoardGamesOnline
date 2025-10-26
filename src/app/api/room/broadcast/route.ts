@@ -1,4 +1,4 @@
-import { supabaseSSRConnection } from "../supabaseConnection";
+import { supabaseSSRConnection } from "../../supabaseConnection";
 
 export async function POST(req: Request) {
   try {

@@ -1,0 +1,142 @@
+.board-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.board-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.turn-label {
+  color: White;
+  margin-bottom: 1rem;
+  font-size: 24px;
+  font-weight: 600;
+  background: #a02758;
+  padding: 10px;
+}
+
+/* TABULEIRO GERAL */
+.board-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  width: 80%;
+}
+
+/* CADA CASA */
+.cell {
+  width: 160px;
+  height: 160px;
+  background: #ffb6c1;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #4a0025;
+  font-size: 18px;
+  font-weight: 600;
+  position: relative;
+  transition: transform 0.2s, background 0.3s;
+  margin: 7px;
+  padding: 0 7px;
+  box-shadow: var(--box-shadow);
+}
+.cell:hover {
+  transform: scale(1.05);
+  background: #ffc6d9;
+}
+.cell-number {
+  font-weight: bold;
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  font-size: 10px;
+}
+
+/* PEÃO */
+.img-player {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: block;
+  object-fit: cover;
+  image-rendering: auto;
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  animation: bounce 0.4s ease;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* CENTRO */
+.center-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 20%;
+  height: 80vh;
+}
+
+/* DADO */
+.dice {
+  width: 80px;
+  height: 80px;
+  background: white;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: bold;
+  color: #a02758;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  margin: 0 auto 10px auto;
+}
+.rolling {
+  animation: spin 1s ease;
+}
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(720deg);
+  }
+}
+
+/* BOTÃO */
+.roll-button {
+  background: var(--color);
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 7px;
+  margin: 10px 0 0 10px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.roll-button:hover {
+  transform: scale(1.05);
+}
+.roll-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

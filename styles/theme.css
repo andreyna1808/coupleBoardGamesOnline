@@ -20,7 +20,7 @@
   --color: var(--rose);
   transition: background 0.4s ease, color 0.4s ease;
   --bg-header-footer: #b95686;
-  --color: #1f0f16;
+  --color: #5a1036;
 }
 
 /* =========================================================
@@ -55,6 +55,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  font-family: "Poppins", sans-serif;
 }
 
 html {
